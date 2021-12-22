@@ -1,0 +1,54 @@
+---
+# Pod
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: tst-ingress
+  name: tst-ingress-pod
+  namespace: tekton-vdm-tst-demo
+spec:
+  containers:
+  - image: index.docker.io/yossarianv/tekton-triggers:demo
+    name: tst-ingress-pod
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: tst-ingress-service
+  namespace: tekton-vdm-tst-demo
+  labels:
+    app: tst-ingress
+spec:
+  type: ClusterIP
+  ports:
+    - name: nginx
+      port: 8080
+      protocol: TCP
+  selector:
+    app: tst-ingress
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tst-ingress-ingress
+  namespace: tekton-vdm-tst-demo
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  labels:
+    app: tst-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tst-ingress-service
+            port:
+              number: 8080
